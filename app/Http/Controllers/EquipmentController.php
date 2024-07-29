@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreEquipmentRequest;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Equipment;
 use App\Http\Controllers\Controller;
@@ -27,16 +29,20 @@ class EquipmentController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Equipment/Create');
+        return inertia("Equipment/Create");
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreEquipmentRequest $request)
     {
-        Equipment::create($request->all());
-        return redirect()->route('equipments.index');
+        $data = $request->validated();
+        $data['created_by'] = Auth::id();
+        $data['updated_by'] = Auth::id();
+        Equipment::create($data);
+
+        return to_route('equipment.index');
     }
 
     /**
