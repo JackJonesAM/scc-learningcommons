@@ -1,3 +1,3 @@
 use App\Http\Controllers\EquipmentController;
 
-Route::apiResource('equipment', EquipmentController::class);
+Route::post('/equipments', [EquipmentController::class, 'store'])->name('equipment.store');

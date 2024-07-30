@@ -21,7 +21,12 @@ class EquipmentController extends Controller
 
         $equipments = $query->paginate(10)->onEachSide(1);
 
-        return inertia("Equipment/Index", ["equipments" => EquipmentResource::collection($equipments),]);
+        return inertia("Equipment/Index", [
+            "equipments" => EquipmentResource::collection($equipments),
+            'quryParams' => request()->quesry ?: null,
+            'success' => session('success')
+        ]);
+
     }
 
     /**
@@ -35,14 +40,35 @@ class EquipmentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreEquipmentRequest $request)
+    public function store(Request $request)
     {
-        $data = $request->validated();
-        $data['created_by'] = Auth::id();
-        $data['updated_by'] = Auth::id();
-        Equipment::create($data);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'status' => 'required|in:available,unavailable',
+        ]);
 
-        return to_route('equipment.index');
+        Equipment::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'status' => $request->status,
+            'updated_at' => now(),
+            'created_at' => now(),
+            'created_by' => auth()->user()->id,
+            'updated_by' => auth()->user()->id,
+        ]);
+
+
+        return redirect()->route('equipment.index') - with('success', 'Equipment is added!');
+        //return to_route('equipment.index') - with('success', 'Equipment is added!');
+
+        //$request->validated();
+        //$data['created_by'] = Auth::id();
+        //$data['updated_by'] = Auth::id();
+
+        //$equipment = Equipment::create($request->all());
+
+        //return to_route('equipment.index') - with('success', 'Equipment is added!');
     }
 
     /**
@@ -80,9 +106,10 @@ class EquipmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Equipment $equipment)
     {
-        Equipment::destroy($id);
-        return redirect()->route('equipments.index');
+        $name = $equipment->name;
+        $equipment->delete();
+        return to_route('equipment.index')->with('success', "Project \"$name\" was deleted");
     }
 }

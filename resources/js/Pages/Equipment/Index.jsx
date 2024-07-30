@@ -4,11 +4,33 @@ import {
     EQUIPEMENT_STATUS_CLASS_MAP,
     EQUIPEMENT_STATUS_TEXT_MAP,
 } from "@/constants.jsx";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 import { Link } from "@inertiajs/react";
-// import { Route } from "@inertiajs/react";
+import axios from "axios";
+//import { Route } from "@inertiajs/react";
 
-export default function Index({ auth, equipments }) {
+export default function Index({ auth, equipments, success }) {
+    const deleteEquipment = (equipment) => {
+        if (confirm("Are you sure you want to delete this equipment?")) {
+            axios
+                .delete(`/equipment/${equipment.id}`)
+                .then(() => {
+                    // Refresh the page or fetch equipment list again after deletion
+                    // You can also update state or fetch data to reflect changes
+                    window.location.reload(); // Example: Reload the page
+                })
+                .catch((error) => {
+                    console.error("Error deleting equipment:", error);
+                    // Handle error if needed
+                });
+        }
+
+        //if (window.confirm("Are you sure you want to delete the project?")) {
+        //     return;
+        //}
+        router.delete(route("equipment.destroy", equipments.id));
+    };
+
     return (
         <AuthenticatedLayout
             user={auth.user}
@@ -30,6 +52,11 @@ export default function Index({ auth, equipments }) {
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    {success && (
+                        <div className="bg-emerald-500py-2 px-4 text-white rounded mb-4">
+                            {success}
+                        </div>
+                    )}
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900 dark:text-gray-100">
                             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-grya-400">
@@ -71,7 +98,7 @@ export default function Index({ auth, equipments }) {
                                                     }
                                                 </span>
                                             </td>
-                                            <td className="px-3 py-2 text-right">
+                                            <td className="px-3 py-2 text-right text-nowrap">
                                                 <Link
                                                     href={route(
                                                         "equipment.edit",
@@ -83,17 +110,20 @@ export default function Index({ auth, equipments }) {
                                                 >
                                                     Edit
                                                 </Link>
-                                                <Link
+                                                <button
+                                                    onClick={() =>
+                                                        deleteEquipment(
+                                                            equipment
+                                                        )
+                                                    }
                                                     href={route(
                                                         "equipment.destroy",
-                                                        {
-                                                            id: equipment.id,
-                                                        }
+                                                        equipment.id
                                                     )}
                                                     className="font-medium text-red-600 dark:text-red-500 hover:underline mx-1"
                                                 >
                                                     Delete
-                                                </Link>
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
